@@ -13,7 +13,8 @@ namespace Yan\DragonpaySdk\Api;
 
 use Yan\DragonpaySdk\Constants\Mode;
 use Yan\DragonpaySdk\Constants\Processor;
-use Yan\DragonpaySdk\Constants\RequestParameter
+use Yan\DragonpaySdk\Constants\RequestParameter;
+use Yan\DragonpaySdk\Exception\ParameterNotFoundException;
 
 /**
  * Set transaction parameters
@@ -34,42 +35,39 @@ class Transaction
     	$this->requestParameter = $requestParameter;
     }
 
-    public function setParameters($parameters)
+    public function getParameters()
     {
-    	$this->parameters = $parameters;
+    	try {
+    		$this->requestParameter->validateRequiredParameters();
+
+    		$parameters = $this->requestParameter->getParameters();
+    		$parameters[RequestParameter::DIGEST] = $this->getDigest();
+    		return ;
+    	} catch (ParameterNotFoundException $e) {
+    		throw $e;
+    	}
     }
 
-    public function setMerchantId($merchantId)
+    public function getDigest($parameters)
     {
-    	$this->merchantId = $merchantId;
-    }
+    	try {
+    		$this->requestParameter->validateRequiredParameters();
 
-    public function setSecretKey($secretKey)
-    {
-    	$this->secretKey = $secretKey;
-    }
+    		// $this->requestParameter->orderParameters();
+    		$digest = sha1(sprintf(
+    			"%s:%s:%s:%s:%s:%s:%s", 
+    			$this->requestParameter->getMerchantId(),
+    			$this->requestParameter->getTransactionId(),
+    			$this->requestParameter->getAmount(),
+    			$this->requestParameter->getCurrency(),
+    			$this->requestParameter->getDescription(),
+    			$this->requestParameter->getEmail(),
+    			$this->requestParameter->getSecretKey()
+			));
 
-    public function setProcessorId($processorId)
-    {
-    	$this->processorId = $processorId;
-    }
-
-    public function setMode($mode)
-    {
-    	$this->mode = $mode;
-    }
-
-    public function orderParameters($parameters)
-    {
-        $parameterOrder = $this->requestParameter->getParameterOrder();
-        
-        $orderedParameters = array();
-        foreach ($parameterOrder as $key) {
-            if (isset($parameters[$key])) {
-                $orderedParameters[$key] = $parameters[$key];
-            }
-        }
-
-        return $orderedParameters;
+			return $digest;
+    	} catch (ParameterNotFoundException $e) {
+    		throw $e;
+    	}
     }
 }

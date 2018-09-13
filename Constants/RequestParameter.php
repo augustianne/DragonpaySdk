@@ -11,6 +11,8 @@
 
 namespace Yan\DragonpaySdk\Constants;
 
+use Yan\DragonpaySdk\Exception\ParameterMissingException;
+
 /**
  * Lists all possible http parameters accepted by Dragonpay
  *
@@ -29,9 +31,7 @@ class RequestParameter
     const SECRET_KEY = 'secret_key';
     const PARAM1 = 'param1';
     const PARAM2 = 'param2';
-    const MODE = 'mode';
-    const PROCID = 'procid';
-
+    
     private $requiredParameters = array(
         self::MERCHANT_ID,
         self::TRANSACTION_ID,
@@ -52,6 +52,13 @@ class RequestParameter
         self::SECRET_KEY
     );
 
+    private $parameters;
+    
+    public function __construct($parameters)
+    {
+        $this->parameters = $parameters;
+    }
+
     public function getRequiredParameters()
     {
         return $this->requiredParameters;
@@ -60,5 +67,80 @@ class RequestParameter
     public function getParameterOrder()
     {
         return $this->parameterOrder;
+    }
+
+    public function getParameters()
+    {
+        return $this->parameters;
+    }
+
+    public function addParameter($param, $value)
+    {
+        $this->parameters[$param] = $value;
+    }
+
+    public function getMerchantId()
+    {
+        return $this->parameters[RequestParameter::MERCHANT_ID];
+    }
+
+    public function getTransactionId()
+    {
+        return $this->parameters[RequestParameter::TRANSACTION_ID];
+    }
+
+    public function getAmount()
+    {
+        return $this->parameters[RequestParameter::AMOUNT];
+    }
+
+    public function getCurrency()
+    {
+        return $this->parameters[RequestParameter::CURRENCY];
+    }
+
+    public function getDescription()
+    {
+        return $this->parameters[RequestParameter::DESCRIPTION];
+    }
+
+    public function getEmail()
+    {
+        return $this->parameters[RequestParameter::EMAIL];
+    }
+
+    public function getSecretKey()
+    {
+        return $this->parameters[RequestParameter::SECRET_KEY];
+    }
+
+    public function validateRequiredParameters()
+    {
+        $parameters = $this->getParameters();
+        $requiredParameters = $this->getRequiredParameters();
+        $parameterKeys = array_keys($parameters);
+
+        $diff = array_diff($requiredParameters, $parameterKeys);
+        
+        if (count($diff)) {
+            throw new ParameterNotFoundException(sprintf("Missing parameters: %s", implode(',', $diff)));
+        }
+    }
+
+    public function orderParameters()
+    {
+        $parameters = $this->getParameters();
+        $parameterOrder = $this->getParameterOrder();
+        
+        $orderedParameters = array();
+        foreach ($parameterOrder as $key) {
+            if (isset($parameters[$key])) {
+                $orderedParameters[$key] = $parameters[$key];
+            }
+        }
+
+        $unorderedParameters = array_diff($orderedParameters, $parameters);
+
+        $this->parameters = $orderedParameters + $unorderedParameters;
     }
 }

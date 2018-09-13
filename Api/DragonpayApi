@@ -12,6 +12,7 @@
 namespace Yan\DragonpaySdk\Api;
 
 use Yan\DragonpaySdk\Api\Transaction;
+use Yan\DragonpaySdk\Constants\RequestParameter;
 /**
  * Access dragonpay api
  *
@@ -28,8 +29,10 @@ class DragonpayApi
     
     protected $mode;
 
-    public function __construct($mode=DragonpayApi::MODE_SANDBOX)
+    public function __construct($merchantId, $secretKey, $mode=DragonpayApi::MODE_SANDBOX)
     {
+        $this->merchantId = $merchantId;
+        $this->secretKey = $secretKey;
         $this->mode = $mode;
     }
 
@@ -38,13 +41,23 @@ class DragonpayApi
         return $this->mode == DragonpayApi::MODE_SANDBOX;
     }
 
-    public function getUrl()
+    public function getCheckoutUrl()
     {
         return $this->isSandboxed() ? DragonpayApi::SANDOXED_URL : DragonpayApi::PRODUCTION_URL;
     }
 
-    public function checkout(Transaction $transaction)
+    public function checkout(Transaction $transaction, Filter $filter)
     {
-        
+        $transaction->addParameter(RequestParameter::MERCHANT_ID, $this->merchantId);
+        $transaction->addParameter(RequestParameter::SECRET_KEY, $this->secretKey);
+
+        $url = sprintf(
+            "%s%s", 
+            $this->getCheckoutUrl(), 
+            http_build_query($transaction->getParameters()),
+            http_build_query($filter->getFilters())
+        );
+
+        header($url);
     }
 }
