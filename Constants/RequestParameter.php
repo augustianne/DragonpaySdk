@@ -11,7 +11,7 @@
 
 namespace Yan\DragonpaySdk\Constants;
 
-use Yan\DragonpaySdk\Exception\ParameterMissingException;
+use Yan\DragonpaySdk\Exception\ParameterNotFoundException;
 
 /**
  * Lists all possible http parameters accepted by Dragonpay

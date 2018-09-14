@@ -54,7 +54,7 @@ class Filter
     {
         $supportedFilters = $this->getSupportedFilters();
         if (!in_array($filter, $supportedFilters)) {
-            throw new FilterNotFoundException(sprintf("'%s' not a supported filter."));
+            throw new FilterNotFoundException(sprintf("'%s' is not a supported filter."));
         }
 
         $this->filters[$filter] = $value;

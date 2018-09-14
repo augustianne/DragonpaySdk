@@ -12,7 +12,9 @@
 namespace Yan\DragonpaySdk\Api;
 
 use Yan\DragonpaySdk\Api\Transaction;
+use Yan\DragonpaySdk\Constants\Filter;
 use Yan\DragonpaySdk\Constants\RequestParameter;
+
 /**
  * Access dragonpay api
  *
@@ -24,8 +26,8 @@ class DragonpayApi
     const MODE_PRODUCTION = 1;
     const MODE_SANDBOX = 2;
 
-    const SANDOXED_URL = 'http://test.dragonpay.ph/Pay.aspx?';
-    const PRODUCTION_URL = 'https://gw.dragonpay.ph/Pay.aspx?';
+    const SANDOXED_URL = 'http://test.dragonpay.ph/Pay.aspx';
+    const PRODUCTION_URL = 'https://gw.dragonpay.ph/Pay.aspx';
     
     protected $mode;
 
@@ -46,18 +48,19 @@ class DragonpayApi
         return $this->isSandboxed() ? DragonpayApi::SANDOXED_URL : DragonpayApi::PRODUCTION_URL;
     }
 
-    public function checkout(Transaction $transaction, Filter $filter)
+    public function checkout(Transaction $transaction, Filter $filter=null)
     {
-        $transaction->addParameter(RequestParameter::MERCHANT_ID, $this->merchantId);
-        $transaction->addParameter(RequestParameter::SECRET_KEY, $this->secretKey);
+        $transaction->setMerchantId($this->merchantId);
+        $transaction->setSecretKey($this->secretKey);
 
         $url = sprintf(
-            "%s%s", 
+            "%s?%s&%s", 
             $this->getCheckoutUrl(), 
             http_build_query($transaction->getParameters()),
-            http_build_query($filter->getFilters())
+            $filter ? http_build_query($filter->getFilters()) : ''
         );
 
-        header($url);
+        header('Location: '.$url);
+        exit;
     }
 }
